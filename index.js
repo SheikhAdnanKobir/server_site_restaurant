@@ -55,6 +55,13 @@ async function run() {
       res.send(findData)
     })
 
+    //Upload section
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await FoodsCollection.insertOne(user)
+      res.send(result)
+    })
+
 
   } finally {
     // Ensures that the client will close when you finish/error
@@ -70,12 +77,3 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Job is waiting at: ${port}`)
 })
-
-
-echo "# server_site_restaurant" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/SheikhAdnanKobir/server_site_restaurant.git
-git push -u origin main
