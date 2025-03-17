@@ -1,0 +1,26 @@
+# Node.js এর জন্য
+node_modules/
+.env
+.DS_Store
+dist/
+logs/
+*.log
+npm-debug.log*
+
+# IDE ফাইল
+.vscode/
+.idea/
+
+# OS স্পেসিফিক ফাইল
+Thumbs.db
+
+# টেম্পোরারি ফাইল
+*.tmp
+*.temp
+
+# বিল্ড আউটপুট
+build/
+out/
+
+# টেস্ট কভারেজ
+coverage/
