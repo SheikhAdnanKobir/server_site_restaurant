@@ -38,6 +38,9 @@ async function run() {
     //Collections of data files name
     const FoodsCollection = client.db("FoodsItemsDB").collection("FoodsItems");
 
+    //Collections of order
+    const OrdersCollection = client.db("OrdersDB").collection("OrdersItems");
+
 
     //   all think you can enter
 
@@ -55,10 +58,23 @@ async function run() {
       res.send(findData)
     })
 
+
     //Upload section
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await FoodsCollection.insertOne(user)
+      res.send(result)
+    })
+
+    app.get("/order", async (req, res) => {
+      const findAllData = OrdersCollection.find()
+      const result = await findAllData.toArray()
+      res.send(result)
+    })
+
+    app.post("/order", async (req, res) => {
+      const user = req.body;
+      const result = await OrdersCollection.insertOne(user)
       res.send(result)
     })
 
