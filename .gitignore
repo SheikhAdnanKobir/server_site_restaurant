@@ -24,3 +24,4 @@ out/
 
 # টেস্ট কভারেজ
 coverage/
+.vercel
