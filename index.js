@@ -105,11 +105,7 @@ async function run() {
     })
 
     //Upload section
-    app.post("/users", async (req, res) => {
-      const user = req.body;
-      const result = await FoodsCollection.insertOne(user)
-      res.send(result)
-    })
+    
 
 
     app.put("/users/:id", async (req, res) => {
