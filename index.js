@@ -1,18 +1,44 @@
 const express = require('express');
+require('dotenv').config()// process.env.PORT ||
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const app = express();
-require('dotenv').config()// process.env.PORT ||
 const port = process.env.PORT || 5000;
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
+app.use(express.json(), cookieParser());
 
 
+const uri = `mongodb+srv://${process.env.User_Name}:${process.env.User_Password}@cluster0.82zxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
+const logger = (req, res, next) => {
+  next();
+}
 
-const uri = "mongodb+srv://server_site_restaurant:8et1PrDHkwRPD9wm@cluster0.82zxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    console.log(" No token in cookies");
+    return res.status(401).send({ message: 'Unauthorized Access' });
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      console.log(" JWT Verify Failed:", err.message);
+      return res.status(403).send({ message: 'Forbidden' });
+    }
+    console.log(" Token verified. User:", decoded);
+    req.user = decoded;
+    next();
+  });
+}
+
 
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -43,10 +69,12 @@ async function run() {
 
 
 
+
+
     //   all think you can enter
 
     //all data fetch
-    app.get("/users", async (req, res) => {
+    app.get("/users", logger, async (req, res) => {
       const findAllData = FoodsCollection.find()
       const result = await findAllData.toArray()
       res.send(result)
@@ -59,6 +87,22 @@ async function run() {
       res.send(findData)
     })
 
+
+    // JWT section
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      // console.log(ACCESS_TOKEN_SECRET);
+      console.log(user);
+      console.log("This is TOken :",process.env.ACCESS_TOKEN_SECRET);
+      console.log("This is user :",user);
+      
+      const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false, // Set to true if using HTTPS
+        sameSite: 'lax' // 'none' + secure: true যদি cross-origin হয়
+      }).send({ success: true })
+    })
 
     //Upload section
     app.post("/users", async (req, res) => {
@@ -136,25 +180,39 @@ async function run() {
 
 
 
-    app.get("/order", async (req, res) => {
-      const findAllData = OrdersCollection.find()
+    app.get("/orders", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      console.log("hi");
+      const query = { buyerEmail: email }
+      if (req.user.email !== req.query.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+      const findAllData = OrdersCollection.find(query)
       const result = await findAllData.toArray()
       res.send(result)
     })
 
-    app.get("/order/:id", async (req, res) => {
+    app.get("/orders/:id", async (req, res) => {
       const id = req.params.id
       const findData = await OrdersCollection.findOne({ _id: new ObjectId(id) })
       res.send(findData)
     })
 
-    app.post("/order", async (req, res) => {
+    app.post('/logout', (req, res) => {
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: false, // Set to true if using HTTPS
+      }).send({ success: true })
+    })
+
+    app.post("/orders", async (req, res) => {
       const user = req.body;
       const result = await OrdersCollection.insertOne(user)
       res.send(result)
     })
 
-    app.delete("/order/:id", async (req, res) => {
+
+    app.delete("/orders/:id", async (req, res) => {
       const id = req.params.id
       const filter = { _id: new ObjectId(id) }
       const result = await OrdersCollection.deleteOne(filter)
