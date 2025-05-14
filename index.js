@@ -73,11 +73,43 @@ async function run() {
 
     //   all think you can enter
 
-    //all data fetch
+    app.get("/datacount", async (req, res) => {
+      const count = await FoodsCollection.estimatedDocumentCount()
+      res.send({ count })
+    })
+
+    app.get("/myproduct",verifyToken, async (req, res) => {
+      const email = req.query.email;
+      // console.log("This is email", email);
+      const query = email ? { email: email } : {};
+      if (req.user.email !== req.query.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+      // console.log("This is query", query);
+      const result = await FoodsCollection.find(query).toArray();
+      console.log("This is result", result);
+      res.send(result);
+  });
+
+    //all data fetch and add pagination and search
     app.get("/users", logger, async (req, res) => {
-      const findAllData = FoodsCollection.find()
-      const result = await findAllData.toArray()
+      console.log("This is query", req.query);
+
+      // const page = parseInt(req.query.page) || 0;
+      // const size = parseInt(req.query.size) || 10;
+      const search = req.query.search || "";
+      console.log("This is search", search);
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+
+      const query = search
+        ? { name: { $regex: search, $options: "i" } }
+        : {};
+
+      const findAllData = FoodsCollection.find(query)
+      const result = await findAllData.skip(page * size).limit(size).toArray()
       res.send(result)
+      // res.send(result)
     })
 
     //Is specific data page
@@ -93,10 +125,10 @@ async function run() {
       const user = req.body;
       // console.log(ACCESS_TOKEN_SECRET);
       console.log(user);
-      console.log("This is TOken :",process.env.ACCESS_TOKEN_SECRET);
-      console.log("This is user :",user);
-      
-      const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      console.log("This is TOken :", process.env.ACCESS_TOKEN_SECRET);
+      console.log("This is user :", user);
+
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
       res.cookie('token', token, {
         httpOnly: true,
         secure: false, // Set to true if using HTTPS
@@ -105,7 +137,11 @@ async function run() {
     })
 
     //Upload section
-    
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await FoodsCollection.insertOne(user)
+      res.send(result)
+    })
 
 
     app.put("/users/:id", async (req, res) => {
