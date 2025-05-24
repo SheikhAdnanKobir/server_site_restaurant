@@ -9,13 +9,13 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://client-site-restaurant.web.app',
   credentials: true
 }));
 app.use(express.json(), cookieParser());
 
 
-const uri = `mongodb+srv://${process.env.User_Name}:${process.env.User_Password}@cluster0.82zxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_UserName}:${process.env.DB_UserPassword}@cluster0.82zxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const logger = (req, res, next) => {
   next();
@@ -55,10 +55,13 @@ async function run() {
 
 
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
+
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    
+    // when upload this code in vercel then comment this code
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
 
     //Collections of data files name
@@ -87,18 +90,18 @@ async function run() {
       }
       // console.log("This is query", query);
       const result = await FoodsCollection.find(query).toArray();
-      console.log("This is result", result);
+      // console.log("This is result", result);
       res.send(result);
   });
 
     //all data fetch and add pagination and search
     app.get("/users", logger, async (req, res) => {
-      console.log("This is query", req.query);
+      // console.log("This is query", req.query);
 
       // const page = parseInt(req.query.page) || 0;
       // const size = parseInt(req.query.size) || 10;
       const search = req.query.search || "";
-      console.log("This is search", search);
+      // console.log("This is search", search);
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
 
@@ -122,17 +125,17 @@ async function run() {
 
     // JWT section
     app.post('/jwt', (req, res) => {
-      const user = req.body;
+      const { email } = req.body; 
       // console.log(ACCESS_TOKEN_SECRET);
-      console.log(user);
-      console.log("This is TOken :", process.env.ACCESS_TOKEN_SECRET);
-      console.log("This is user :", user);
+      // console.log(user);
+      // console.log("This is TOken :", process.env.ACCESS_TOKEN_SECRET);
+      // console.log("This is user :", user);
 
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
       res.cookie('token', token, {
         httpOnly: true,
-        secure: false, // Set to true if using HTTPS
-        sameSite: 'lax' // 'none' + secure: true যদি cross-origin হয়
+        secure: true, // Set to true if using HTTPS
+        sameSite: 'none' // 'none' + secure: true যদি cross-origin হয়
       }).send({ success: true })
     })
 
@@ -214,7 +217,7 @@ async function run() {
 
     app.get("/orders", verifyToken, async (req, res) => {
       const email = req.query.email;
-      console.log("hi");
+      // console.log("hi");
       const query = { buyerEmail: email }
       if (req.user.email !== req.query.email) {
         return res.status(403).send({ message: 'forbidden access' })
@@ -233,7 +236,7 @@ async function run() {
     app.post('/logout', (req, res) => {
       res.clearCookie('token', {
         httpOnly: true,
-        secure: false, // Set to true if using HTTPS
+        secure: true, // Set to true if using HTTPS
       }).send({ success: true })
     })
 
