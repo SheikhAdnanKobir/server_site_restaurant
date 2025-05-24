@@ -37,8 +37,7 @@ This backend API supports a restaurant management system where:
 
 | Package           | Purpose                                   |
 |-------------------|-------------------------------------------|
-| express           | Web server framework                      |
-| mongoose          | MongoDB ODM                               |
+| express           | Web server framework                      |                             |
 | cors              | Enable CORS                               |
 | dotenv            | Environment variable configuration        |
 | jsonwebtoken      | JWT token creation and verification       |
